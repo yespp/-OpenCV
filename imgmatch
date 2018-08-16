@@ -49,9 +49,6 @@ void matcht(Mat &src, Mat& tmp, int n){
 	t += rate;
 	rank.push_back(rate);
 	string s=rate<2?"无":"有";
-	if (rate>7) {
-		matcht()
-	}
 	cout <<j++<<"   "<< rate<<s << endl;
 	namedWindow(imageWindow,0);
 	namedWindow(resWindow, 0);
