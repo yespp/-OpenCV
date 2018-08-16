@@ -1,0 +1,92 @@
+#include<opencv2/imgproc/imgproc.hpp>
+#include<opencv2/highgui/highgui.hpp>
+#include<opencv2/core/core.hpp>
+#include<iostream>
+#include<vector>
+using namespace cv;
+using namespace std;
+
+Mat src, dsp, res,tmp;
+const char* imageWindow = "sourse image";
+const char* resWindow = "result image";
+double t=0;
+
+
+void matcht(Mat &src, Mat& tmp, int n){
+	Mat dsyimage;
+	src.copyTo(dsyimage);
+	int result_cols = src.cols - tmp.cols + 1;
+	int result_rows = src.rows - tmp.rows + 1;
+	res.create(result_cols, result_rows, CV_32FC1);
+	vector<double> rank;
+
+	// 进行匹配并归一化
+	matchTemplate(src, tmp, res, n);
+	//normalize(res, res, 0, 1, NORM_MINMAX, -1, Mat());
+
+	// 使用minMaxLoc找出最佳匹配
+	double minVal, maxVal;
+	Point minLoc, maxLoc, matchLoc;
+	minMaxLoc(res, &minVal, &maxVal, &minLoc, &maxLoc, Mat());
+
+	// 对于CV_TM_SQDIFF和 CV_TM_SQDIFF_NORMED这两种方法，最小值为最佳匹配；对于别的方法最大值为最佳匹配
+	if (n == CV_TM_SQDIFF || n == CV_TM_SQDIFF_NORMED)
+	{
+		matchLoc = minLoc;
+	}
+	else
+	{
+		matchLoc = maxLoc;
+	}
+
+	// 在原始图像和匹配结果图像中以最佳匹配点为左上角标出最佳匹配框
+	rectangle(dsyimage, matchLoc, Point(matchLoc.x + tmp.cols, matchLoc.y + tmp.rows), Scalar(0,255,0), 2, 8, 0);
+
+
+	dsp = src(Rect(matchLoc.x, matchLoc.y, tmp.rows, tmp.cols));
+	static int j=1;
+	double rate = minVal/100000000;
+	t += rate;
+	rank.push_back(rate);
+	string s=rate<2?"无":"有";
+	if (rate>7) {
+		matcht()
+	}
+	cout <<j++<<"   "<< rate<<s << endl;
+	namedWindow(imageWindow,0);
+	namedWindow(resWindow, 0);
+	imshow(imageWindow, dsyimage);
+	imshow(resWindow, dsp);
+
+
+	return;
+
+}
+
+int main(){
+	tmp = imread("C:/Users/yefeng/Desktop/7.10night/tmp.bmp");
+	Mat art;
+	const int num = 40;
+	char filename1[50];
+	char filename2[50];
+	char windowName[50];
+	for (int i = 1; i <= num; i++)
+	{
+		sprintf(filename1, "C:/Users/yefeng/Desktop/7.11/%db.bmp", i);
+		sprintf(filename2, "C:/Users/yefeng/Desktop/711/%d.bmp", i);
+	//	sprintf(windowName, "Show");
+		art = imread(filename1);
+		Mat roi = art(Rect(960, 700, 600, 500));
+	//	namedWindow("roi", 0);
+	//	imshow("roi",roi);
+		matcht(roi, tmp,0);
+		//matcht(dsp, tmp, 0);
+
+	//	namedWindow(windowName,0);
+	//	imshow(windowName, art);
+		waitKey(100);
+	}
+	cout << t / num << endl;
+	system("pause");
+	return 0;
+}
