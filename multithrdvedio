@@ -1,0 +1,53 @@
+#include <opencv2/highgui/highgui.hpp>  
+#include <opencv2/imgproc/imgproc.hpp>  
+#include <opencv2/core/core.hpp>  
+#include<thread>
+#include<iostream>
+
+
+using namespace cv;
+using namespace std;
+
+void Ts(cv::VideoCapture cap);
+
+int main()
+{
+
+	VideoCapture cap(0);//“vedio.avi”代表某视频,如果是笔记本，0打开的是自带的摄像头，1 打开外接的相机  
+	Mat frame;
+	thread Ts1([&] {//=是值传递
+		while (waitKey(30) != 27)//esc的ascii码为27,按下27退出，waitKey的返回值是按下的键的ASCII码
+		{
+			cap >> frame;
+			imshow("调用摄像头2", frame);
+
+		}
+	});
+
+
+	thread Ts2([&] {Ts(cap); });
+	for (int i = 0; i < 50; i++) {
+		cout << i << endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+	}
+
+	//Ts程1.detach();//让这个Ts程hold住
+
+	Ts1.join();//等待Ts程的结束
+	Ts2.join();
+
+	return 0;
+}
+
+
+
+
+void Ts(cv::VideoCapture cap) {
+	Mat frame;
+	while (waitKey(30) != 27)
+	{
+		cap >> frame;
+		imshow("调用摄像头", frame);
+	}
+}
